@@ -1,0 +1,64 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+readonly JOBID_FILE="${HOME:?HOME must be set}/.codex-cluster/jobid"
+readonly CONDA_MODULE='Miniconda3/23.10.0-1'
+readonly CONDA_ENVIRONMENT_PATH='/home/cruizarenas/.conda/envs/nf-dev'
+
+usage() {
+    echo "Usage: $(basename "$0") '<command>'" >&2
+}
+
+fail() {
+    echo "codex-srun: $*" >&2
+    exit 1
+}
+
+if [[ $# -ne 1 || -z $1 ]]; then
+    usage
+    exit 2
+fi
+
+if [[ ! -r $JOBID_FILE ]]; then
+    fail "missing readable Slurm JobID file: ${JOBID_FILE}"
+fi
+
+mapfile -t jobid_lines < "$JOBID_FILE"
+if [[ ${#jobid_lines[@]} -ne 1 || ! ${jobid_lines[0]} =~ ^[0-9]+$ ]]; then
+    fail "${JOBID_FILE} must contain exactly one numeric Slurm JobID"
+fi
+
+readonly jobid="${jobid_lines[0]}"
+readonly command="$1"
+
+srun \
+    --jobid="$jobid" \
+    --overlap \
+    --nodes=1 \
+    --ntasks=1 \
+    bash -lc '
+        set -euo pipefail
+
+        if ! type module >/dev/null 2>&1; then
+            echo "codex-srun: environment modules are unavailable in the Slurm allocation" >&2
+            exit 1
+        fi
+
+        module load "$1"
+
+        if ! command -v conda >/dev/null 2>&1; then
+            echo "codex-srun: Conda is unavailable after loading $1" >&2
+            exit 1
+        fi
+
+        conda_base="$(conda info --base)"
+        conda_hook="${conda_base}/etc/profile.d/conda.sh"
+        if [[ ! -r "$conda_hook" ]]; then
+            echo "codex-srun: Conda activation hook is unavailable: ${conda_hook}" >&2
+            exit 1
+        fi
+
+        source "$conda_hook"
+        conda activate "$2"
+        exec bash -lc "$3"
+    ' bash "$CONDA_MODULE" "$CONDA_ENVIRONMENT_PATH" "$command"
