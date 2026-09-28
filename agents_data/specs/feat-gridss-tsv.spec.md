@@ -1,7 +1,7 @@
 # GRIDSS TSV subworkflow Specification
 - **ID**: feat-gridss-tsv
 - **Type**: feat
-- **Status**: Approved
+- **Status**: Draft
 
 Allowed status flow: Draft -> Approved -> Planned -> Coded -> Verified -> Released. A requested
 revision of the same work reopens this file at Draft.
