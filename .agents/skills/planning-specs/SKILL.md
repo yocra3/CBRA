@@ -38,14 +38,17 @@ For Nextflow work, also load [Nextflow planning](./nextflow.md).
  - [ ] If multiple candidates exist, stop and ask the user; do not create another plan.
 ### Step 5: Review and finalize the plan.
  - [ ] Ensure the plan is comprehensive and feasible.
- - [ ] After the initial plan is finalized, change the source specification from `Approved` to
-   `Planned`. Preserve `Planned` when a later round updates the same plan.
- - [ ] Do not skip or regress an existing later status.
+ - [ ] Confirm that every field required by an applicable framework profile is present and resolved
+   for the current plan round.
+ - [ ] Map every acceptance criterion to one or more plan increments and their verification.
+ - [ ] Leave the source specification status unchanged; lifecycle transitions belong to the caller.
 
 ## Output Checklist
 
 - [ ] A detailed implementation plan at `{Plans_Folder}/<spec-slug-id>.plan.md`.
 - [ ] Exactly one plan file associated with the source specification.
-- [ ] The source specification marked `Planned` when its previous status was `Approved`.
-- [ ] The source specification identifier, plan path, whether it was created or updated, and
-  resulting specification status reported to the caller.
+- [ ] Every acceptance criterion mapped to an implementation increment and verification.
+- [ ] Every applicable framework-profile field present and resolved for the current plan round
+  before the plan is finalized.
+- [ ] The source specification identifier, plan path, and whether it was created or updated reported
+  to the caller.

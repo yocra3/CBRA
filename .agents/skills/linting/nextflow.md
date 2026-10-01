@@ -1,6 +1,6 @@
 # Nextflow linting with nf-core tools
 
-Use the repository's nf-core tools version and confirm options with the command's `--help`.
+Use the available nf-core tools installation and confirm options with the command's `--help`.
 From the repository root, select the requested scope:
 
 - Pipeline: `nf-core pipelines lint`.

@@ -1,7 +1,7 @@
 # Nextflow component testing with nf-test
 
-Use this profile with the applicable nf-core testing conventions. Resolve paths, pinned versions,
-plugins and execution profiles from the repository. The implementation plan declares the round.
+Use this profile with the applicable nf-core testing conventions. Resolve paths, required plugins
+and execution profiles from the repository. The implementation plan declares the round.
 
 ## Reference phase
 
@@ -18,7 +18,8 @@ Do not fall back to host-installed tools. Record the Apptainer version and resol
 with the test evidence.
 
 Establish RED before the reference implementation exists, then validate the generated files under
-the untracked `.reference-data` workspace. Do not create nf-test tests or snapshots in this phase.
+the untracked `{Project_Folder}/reference-data/<spec-slug-id>/` workspace. Do not create nf-test
+tests or snapshots in this phase.
 Missing source data, Apptainer, the pinned image or required tools are environment failures, not
 valid RED. Report concrete data paths, checksums and validation evidence to builder for the next
 round. For web sources, the committed test command must begin from an empty target and invoke the

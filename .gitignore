@@ -2,5 +2,4 @@
 .nextflow/
 work/
 .codex-cluster/jobid
-
-agents_data/reference_data/
+agents_data/reference-data/

@@ -18,8 +18,8 @@ only when its diff matches the approved revision; unrelated pending changes rema
 the branch is ready, change the approved specification from `Draft` to `Approved` before delegation.
 Delegate to engineer before each implementation round. Engineer creates or updates the single plan
 for the specification, evaluates data-modeling, and selects the round from the supplied profiles and
-the specification's concrete test data. Do not begin TDD until the plan exists and every applicable
-ER model change is written to `{Project_Folder}/ERM.md`.
+the specification's concrete test data. Do not begin TDD until the plan exists and the specification
+is `Planned` or later. An absent, inapplicable, or unavailable ER model does not block TDD.
 
 When the plan requires a reference round, delegate sequentially: tester proves RED against the
 planned Bash/Python contracts, coder implements the minimum reference behavior for GREEN, and
