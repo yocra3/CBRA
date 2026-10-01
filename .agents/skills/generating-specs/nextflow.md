@@ -10,8 +10,7 @@ Add a `Test data` section to the specification:
 - Define the smallest executable scenario for each required behavior. Prefer a
   sample restricted to one chromosome or genomic region when that exercises
   the same interface and control flow as full-scale data.
-- Follow [reference test data](test_data.md) to search nf-core/test-datasets
-  before considering the allowed local-module Zenodo record.
+- Follow [reference test data](test_data.md) to search data for testing.
 - Record each concrete input, its role, path, format, required companion files,
   checksums when available, and only the compatibility relationships that the
   software relies on. Do not require independent inputs to belong to the same

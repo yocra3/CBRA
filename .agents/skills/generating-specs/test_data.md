@@ -34,6 +34,12 @@ other deterministic properties can be sufficient assertions for a functional
 test. Require known biological events or exact annotation values only when the
 specified behavior explicitly depends on them.
 
+Search for test data in the following order:
+
+## Local repository
+
+Explore data used for testing modules, subworkflows, and workflows in the current repository. Inspect the metadata, headers, and other properties of candidate files to confirm that they satisfy the required input role and compatibility group. Use the smallest compatible dataset. Do not add test-data files to this repository.
+
 ## nf-core/test-datasets
 
 When the specification does not already provide a usable fixture, browse the

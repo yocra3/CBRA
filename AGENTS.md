@@ -16,6 +16,9 @@ Use the Nextflow, Groovy, nf-core, and nf-test profiles in `.agents/skills` when
 
 ## Development execution
 
+At the start of work, read [the Conda environment instructions](.codex-cluster/load-conda-environment.sh).
+Source that script only from within the selected Slurm allocation; `codex-srun` does this automatically.
+
 Run local read-only repository inspection directly. This includes `git status`, `git diff`,
 `git log`, `rg`, `sed`, `ls`, `find`, and `stat`; it does not require Slurm.
 
@@ -31,9 +34,8 @@ If the wrapper fails with Slurm stream-socket permission errors in an isolated e
 the same wrapper command with escalated access to the Slurm controller. Stop and tell the user only
 if that retry fails. File inspection without running tools is always allowed without the wrapper.
 
-The wrapper reads the user-selected Slurm JobID from `~/.codex-cluster/jobid`, loads
-`Miniconda3/23.10.0-1`, activates `/home/cruizarenas/.conda/envs/nf-dev`, and runs the command
-in that allocation.
+The wrapper reads the user-selected Slurm JobID from `~/.codex-cluster/jobid`, sources
+`.codex-cluster/load-conda-environment.sh`, and runs the command in that allocation.
 Never run `module`, Conda, Nextflow, tests, linters, or development tools directly outside it.
 
 ## Agent artifacts

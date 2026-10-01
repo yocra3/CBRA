@@ -36,7 +36,7 @@ orchestration and Python for structured transformations or validation. Do not in
 the Nextflow components that the later round will test.
 
 Generated data belongs under `{Root_Folder}/.reference-data/<spec-slug-id>/` and remains untracked.
-Version generation and validation scripts under `{Specs_Folder}/<spec-slug-id>.reference/`. Include
+Version generation and validation scripts under `{Plans_Folder}/<spec-slug-id>.reference/`. Include
 provenance, checksums, the selected container and Apptainer commands, parameters, seeds, expected
 properties and reproduction commands in the plan. For web test data, pin the source revision and
 checksums and require the versioned scripts to materialize it from an empty data workspace.
