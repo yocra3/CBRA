@@ -2,8 +2,7 @@
 set -euo pipefail
 
 readonly JOBID_FILE="${HOME:?HOME must be set}/.codex-cluster/jobid"
-readonly CONDA_MODULE='Miniconda3/23.10.0-1'
-readonly CONDA_ENVIRONMENT_PATH='/home/cruizarenas/.conda/envs/nf-dev'
+readonly CONDA_ENVIRONMENT_SCRIPT="$(dirname "$0")/load-conda-environment.sh"
 
 usage() {
     echo "Usage: $(basename "$0") '<command>'" >&2
@@ -38,27 +37,6 @@ srun \
     --ntasks=1 \
     bash -lc '
         set -euo pipefail
-
-        if ! type module >/dev/null 2>&1; then
-            echo "codex-srun: environment modules are unavailable in the Slurm allocation" >&2
-            exit 1
-        fi
-
-        module load "$1"
-
-        if ! command -v conda >/dev/null 2>&1; then
-            echo "codex-srun: Conda is unavailable after loading $1" >&2
-            exit 1
-        fi
-
-        conda_base="$(conda info --base)"
-        conda_hook="${conda_base}/etc/profile.d/conda.sh"
-        if [[ ! -r "$conda_hook" ]]; then
-            echo "codex-srun: Conda activation hook is unavailable: ${conda_hook}" >&2
-            exit 1
-        fi
-
-        source "$conda_hook"
-        conda activate "$2"
-        exec bash -lc "$3"
-    ' bash "$CONDA_MODULE" "$CONDA_ENVIRONMENT_PATH" "$command"
+        source "$1"
+        exec bash -lc "$2"
+    ' bash "$CONDA_ENVIRONMENT_SCRIPT" "$command"
