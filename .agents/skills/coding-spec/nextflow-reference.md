@@ -7,8 +7,8 @@ Nextflow code.
 ## Location and languages
 
 - Keep generated inputs, outputs and manifests under
-  `{Root_Folder}/.reference-data/<spec-slug-id>/`, outside product source and excluded from version
-  control. Never stage or commit them.
+  `{Project_Folder}/reference-data/<spec-slug-id>/`, outside product source and excluded from
+  version control. Never stage or commit them.
 - Version only generation and validation scripts under
   `{Specs_Folder}/<spec-slug-id>.reference/`.
 - Prefer Bash for orchestration and command execution. Use Python for structured parsing,

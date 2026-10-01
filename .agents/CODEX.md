@@ -14,7 +14,7 @@ Revisions update those files in place instead of creating parallel artifacts.
 - `product_owner`: creates or updates the specification as `Draft`.
 - Human approval: explicitly authorizes the exact `Draft` revision for builder.
 - `builder`: records the approved handoff as `Approved` on its task branch.
-- `engineer`: advances `Approved` to `Planned` after planning and applicable data modeling.
+- `engineer`: advances `Approved` to `Planned` after planning.
 - `builder`: advances `Planned` to `Coded`, then `Verified`, based on implementation and evidence.
 - `dev_ops`: advances included `Verified` specifications to `Released` during a release.
 

@@ -1,3 +1,4 @@
 .nf-test*
 .nextflow/
 work/
+agents_data/reference-data/

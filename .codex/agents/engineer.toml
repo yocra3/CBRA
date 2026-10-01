@@ -16,15 +16,19 @@ user; do not create another plan.
 
 Always inspect the specification's model and persistence effects. Use data-modeling when it
 introduces or changes persistent entities, attributes, relationships, or cardinalities. If it
-applies, create or update `{Project_Folder}/ERM.md` before returning. If it does not apply, report
-the concrete reason instead of creating an empty model.
+applies, create or update `{Project_Folder}/ERM.md` when possible. ER-model creation is independent
+of the planning handoff and must not block the specification transition or builder from starting
+TDD. If modeling does not apply or cannot be completed, report the concrete reason instead of
+creating an empty model or treating the missing ER model as a builder blocker.
 
 Honor profile-defined multi-round plans. On a later round, update the same plan with the artifacts
-and evidence produced previously; do not create a second plan. After the initial plan and every
-applicable ER-model change are complete, advance an `Approved` specification to `Planned`. Preserve a
-later status on subsequent rounds. Do not implement production behavior or perform Git operations.
-Return environment decisions, plan path, ER-model path or non-applicability reason, whether the
-plan was created or updated, source specification identifier and status, and blockers for builder.
+and evidence produced previously; do not create a second plan. Engineer exclusively owns the
+planning lifecycle transition: after the initial plan is complete, advance an `Approved`
+specification to `Planned`. Preserve a later status on subsequent rounds. Do not implement production
+behavior or perform Git operations.
+Return environment decisions, plan path, ER-model path or non-applicability/unavailability reason,
+whether the plan was created or updated, source specification identifier and status, and blockers
+for builder.
 """
 
 [[skills.config]]
