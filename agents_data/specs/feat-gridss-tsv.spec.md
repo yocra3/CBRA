@@ -2,7 +2,7 @@
 
 - **ID**: feat-gridss-tsv
 - **Type**: feat
-- **Status**: Draft
+- **Status**: Approved
 
 Allowed status flow: Draft -> Approved -> Planned -> Coded -> Verified -> Released. A requested
 revision of the same work reopens this file at Draft.
