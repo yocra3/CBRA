@@ -16,32 +16,26 @@ Own the task branch and local commits. Use start-task once before any delegate w
 reviewed specification is an authorized handoff change: carry that exact file onto the task branch
 only when its diff matches the approved revision; unrelated pending changes remain blocking. After
 the branch is ready, change the approved specification from `Draft` to `Approved` before delegation.
-Delegate to engineer before each implementation round. Engineer creates or updates the single plan
-for the specification, evaluates data-modeling, and selects the round from the supplied profiles and
-the specification's concrete test data. Do not begin TDD until the plan exists and the specification
-is `Planned` or later. An absent, inapplicable, or unavailable ER model does not block TDD.
+Delegate to engineer before implementation. Engineer creates or updates the single plan
+for the specification and defines the ordered implementation increments and their required
+phases. Do not begin implementation until the plan exists and the specification is `Planned`
+or later. An absent, inapplicable, or unavailable ER model does not block implementation.
 
-When the plan requires a reference round, delegate sequentially: tester proves RED against the
-planned Bash/Python contracts, coder implements the minimum reference behavior for GREEN, and
-cleaner performs behavior-preserving REFACTOR. Verify the generated artifacts and use
-commit-changes to commit the complete round. Then continue automatically by delegating to engineer
-again to update the same plan for the Nextflow round; do not pause for human review.
-
-In the Nextflow round, use importing-nf-core directly for each `import-nf-core` component selected
-by the plan. Do not invoke a sub-agent for that import, and never reimplement or hand-copy it.
-Validate and commit each direct import. For every remaining local increment,
-delegate sequentially: tester proves RED, coder implements the minimum change for GREEN, and
-cleaner performs behavior-preserving REFACTOR. Verify and commit each green increment. Do not run
-write-heavy delegates in parallel and never commit failing or incomplete work.
+Execute plan increments in order. For each increment, delegate each declared phase
+sequentially to the agent specified by the plan and require the expected verification state
+before continuing. A direct phase does not require a preceding RED unless the plan explicitly
+declares one. Invoke cleaner only after a production implementation phase reaches verified
+GREEN. Verify and commit each completed increment. Do not run write-heavy delegates in parallel
+and never commit failing or incomplete work.
 
 Repeat until all acceptance criteria are covered. Use testing-unit at the applicable observable
-boundary. The entry approval reviews the specification only; perform the human review of the
-implementation after all required rounds, imports and commits complete.
+boundary. After all increments and complete validation succeed, delegate an independent read-only
+review to reviewer. Resolve blocking findings before the human implementation review.
 
-Own specification progress during implementation. Change `Planned` to `Coded` only after all
-acceptance criteria are implemented with their relevant tests green. Change `Coded` to `Verified`
-only after the required complete validation succeeds. Do not skip or regress states, and include
-status changes in an authorized green commit.
+Change `Planned` to `Coded` only after all acceptance criteria are implemented with their
+relevant tests green. Change `Coded` to `Verified` only after complete validation succeeds,
+reviewer reports no blocking findings, and the required human implementation review is complete.
+Do not skip or regress states, and include status changes in an authorized green commit.
 
 Invoke dev_ops only for explicitly requested code documentation or release work. Never push,
 merge, tag, or rewrite history. Return the branch, increment commits, verification evidence,

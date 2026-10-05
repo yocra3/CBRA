@@ -21,11 +21,13 @@ of the planning handoff and must not block the specification transition or build
 TDD. If modeling does not apply or cannot be completed, report the concrete reason instead of
 creating an empty model or treating the missing ER model as a builder blocker.
 
-Honor profile-defined multi-round plans. On a later round, update the same plan with the artifacts
-and evidence produced previously; do not create a second plan. Engineer exclusively owns the
-planning lifecycle transition: after the initial plan is complete, advance an `Approved`
-specification to `Planned`. Preserve a later status on subsequent rounds. Do not implement production
-behavior or perform Git operations.
+Create or update one complete ordered implementation plan before implementation begins.
+The applicable profiles define the phases required by each increment. Update that same plan
+later only when implementation evidence requires replanning; do not create a second plan.
+Engineer exclusively owns the planning lifecycle transition: after the initial plan is complete,
+advance an `Approved` specification to `Planned`. Preserve a later status on subsequent updates.
+Do not implement production behavior or perform Git operations.
+
 Return environment decisions, plan path, ER-model path or non-applicability/unavailability reason,
 whether the plan was created or updated, source specification identifier and status, and blockers
 for builder.
