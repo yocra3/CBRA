@@ -14,7 +14,8 @@ search separately for the remaining input roles.
 Require coordination only within compatibility groups whose files are
 interpreted together:
 
-- A data file and its index must correspond.
+- When an index or other companion is required by the selected
+implementation interface, it must correspond to its primary file.
 - Aligned reads and their reference must agree on the genome build, contig
   names, and contig lengths required by the selected region.
 - Intervals and variants must be compatible with the reference when they are
@@ -23,10 +24,9 @@ interpreted together:
   identifiers.
 
 Inputs outside the same compatibility group may come from different samples,
-experiments, or repositories. For example, a BAM/BAI and FASTA/FAI must be
-compatible, while an independent annotation file only needs to satisfy its own
-format and semantic contract unless the test explicitly joins its records to
-the aligned-read fixture.
+experiments, or repositories. For example, aligned reads and their selected reference must be
+compatible; any indexes or other companions required by the selected
+implementation must also correspond to their primary files.
 
 Do not require a source dataset to provide a full expected-output oracle.
 Existence, parseability, schema, channel cardinality, metadata propagation, and
