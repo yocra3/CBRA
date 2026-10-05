@@ -28,13 +28,22 @@ declares one. Invoke cleaner only after a production implementation phase reache
 GREEN. Verify and commit each completed increment. Do not run write-heavy delegates in parallel
 and never commit failing or incomplete work.
 
-Repeat until all acceptance criteria are covered. Use testing-unit at the applicable observable
-boundary. After all increments and complete validation succeed, delegate an independent read-only
-review to reviewer. Resolve blocking findings before the human implementation review.
+Repeat until all acceptance criteria are covered.
 
-Change `Planned` to `Coded` only after all acceptance criteria are implemented with their
-relevant tests green. Change `Coded` to `Verified` only after complete validation succeeds,
-reviewer reports no blocking findings, and the required human implementation review is complete.
+Change `Planned` to `Coded` only after all implementation increments
+are complete and their relevant tests are green.
+
+After entering `Coded`, run complete validation and delegate an
+independent read-only review to reviewer.
+
+Change `Coded` to `Verified` only after complete validation succeeds,
+reviewer reports no blocking findings, and the required human
+implementation review is complete.
+
+Resolve blocking findings through the affected plan phases, then rerun
+complete validation and reviewer. Repeat until reviewer reports no
+blocking findings before the human implementation review.
+
 Do not skip or regress states, and include status changes in an authorized green commit.
 
 Invoke dev_ops only for explicitly requested code documentation or release work. Never push,

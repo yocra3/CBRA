@@ -38,8 +38,8 @@ For Nextflow work, also load [Nextflow planning](./nextflow.md).
  - [ ] If multiple candidates exist, stop and ask the user; do not create another plan.
 ### Step 5: Review and finalize the plan.
  - [ ] Ensure the plan is comprehensive and feasible.
- - [ ] Confirm that every field required by an applicable framework profile is present and resolved
-   for the current plan round.
+ - [ ] Confirm that every field required by an applicable framework profile
+is present and resolved for the complete implementation plan.
  - [ ] Map every acceptance criterion to one or more plan increments and their verification.
  - [ ] Leave the source specification status unchanged; lifecycle transitions belong to the caller.
 

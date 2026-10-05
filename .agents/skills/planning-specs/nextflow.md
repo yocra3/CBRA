@@ -6,8 +6,8 @@ generation, and ordered implementation phases before implementation begins.
 
 ## Component design and reuse
 
-During the first engineer invocation, derive the functional processing requirements before designing
-the final Nextflow structure, even when the immediate round will implement a Bash/Python reference.
+During planning, derive the functional processing requirements before
+designing the final Nextflow structure or its reference-generation phases.
 Identify the required operations, dependencies, inputs, outputs, methods and intermediate semantics
 without assigning module or subworkflow boundaries yet.
 
@@ -27,6 +27,10 @@ cannot be eliminated by the selected composition.
 Resolve implementation order from dependencies. Place reusable or imported dependencies before
 new components that consume them, then order new modules before dependent subworkflows and
 higher-level local wiring.
+
+For `reuse-local`, do not plan an implementation phase when the existing
+component is consumed unchanged. Represent any new consuming behavior
+separately as `local-wiring`.
 
 For nf-core imports, record the exact component type, remote name and pinned `nf-core/modules`
 commit SHA and preserve the component's declared containers. Add the exact pipeline root to the

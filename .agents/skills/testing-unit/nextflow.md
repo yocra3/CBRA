@@ -5,8 +5,8 @@ and execution profiles from the repository. The implementation plan declares the
 
 ## Reference-validation phase
 
-When the plan declares `tester: reference-validation`, write executable validations for the
-reference inputs and outputs before those outputs are generated. Use the input, prerequisite, output and
+When the plan declares `tester: reference-validation`, verify that the resolved reference inputs are usable, then write executable validations for the reference outputs before those outputs
+are generated. Use the input, prerequisite, output and
 validation contracts resolved by the plan.
 
 Validate declared filenames, provenance where relevant, formats, cardinality, metadata
