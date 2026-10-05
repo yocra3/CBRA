@@ -36,7 +36,7 @@ For requirements not fully covered locally, run:
     python scripts/search_nfcore.py <search terms>
 
 Use multiple searches when useful. Search by tool, operation, input/output format and relevant
-synonyms.
+synonyms. Do not start a new search until a previous search has completed and returned results.
 
 The script uses the available `nf-core/tools` installation and returns structured metadata for
 candidate nf-core modules and subworkflows.
@@ -59,6 +59,11 @@ Consider:
 
 Do not require one Nextflow component per preliminary functional operation.
 
+When tests are available for a plausible reusable component, inspect them as supporting evidence.
+Record useful test fixture paths, companion files, derived prerequisites, and setup or generation
+commands that may help implementation planning resolve test data. Treat these as evidence and
+candidates, not as requirements of the functional specification.
+
 ## 4. Identify gaps
 
 Only after considering existing components and compositions, classify uncovered executable
@@ -79,8 +84,8 @@ Use:
 - `composition` when several existing components jointly satisfy a requirement
 - `new-required` only for functionality not satisfied by existing components or compositions
 
-Record compatibility evidence for every resolution.
-
-For nf-core components, record the exact component name and checked `nf-core/modules` commit SHA.
+Record compatibility evidence for every resolution, including relevant upstream test evidence
+when inspected. For nf-core components, record the exact component name and checked
+`nf-core/modules` commit SHA.
 
 Do not generate Nextflow code or an implementation plan.

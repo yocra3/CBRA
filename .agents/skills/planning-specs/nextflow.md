@@ -1,7 +1,8 @@
 # Nextflow implementation planning
 
-Use the specification's `Test data` value to choose the plan round. Keep one plan for the source
-specification and update it in place when builder invokes engineer again.
+Create one complete implementation plan for the source specification. Resolve the component
+design, concrete test fixtures, required companions, derived test prerequisites, reference
+generation, and ordered implementation phases before implementation begins.
 
 ## Component design and reuse
 
@@ -23,6 +24,10 @@ Classify every component in the final design as `reuse-local`, `import-nf-core`,
 `new-required` must be resolved during final design as new local modules or subworkflows when they
 cannot be eliminated by the selected composition.
 
+Resolve implementation order from dependencies. Place reusable or imported dependencies before
+new components that consume them, then order new modules before dependent subworkflows and
+higher-level local wiring.
+
 For nf-core imports, record the exact component type, remote name and pinned `nf-core/modules`
 commit SHA and preserve the component's declared containers. Add the exact pipeline root to the
 plan so `importing-nf-core` can execute without inferring it. For local reuse, record the existing
@@ -34,26 +39,51 @@ container and an Apptainer-compatible URI. Prefer an immutable image from
 only with a recorded justification. Never select `latest`; record the image digest or stable hash,
 software version, Apptainer invocation, and required bind mounts.
 
-## Reference round
+Inspect the test evidence reported by `nfcore-component-reuse` when resolving concrete fixtures.
+A specification fixture marked `required` must be preserved. A `candidate` may be replaced when
+the selected implementation requires a different compatible fixture; record the reason.
 
-When test data is `reference-required`, set the plan round to `reference`. Plan an independent,
-deterministic Bash/Python implementation that produces concrete inputs, intermediate artifacts and
-outputs at every boundary needed to test the planned Nextflow components. Prefer Bash for
-orchestration and Python for structured transformations or validation. Do not invoke or translate
-the Nextflow components that the later round will test.
+## Increment execution
 
-Generated data belongs under `{Project_Folder}/reference-data/<spec-slug-id>/` and remains untracked.
-Version generation and validation scripts under `{Plans_Folder}/<spec-slug-id>.reference/`. Include
-provenance, checksums for every existing input, the selected container and Apptainer commands,
-parameters, seeds, expected properties and reproduction commands in the plan. Mark checksums for
-outputs that this round will create as `pending-reference-generation`; they are required in the
-later Nextflow-round update. For web test data, pin the source revision and checksums and require
-the versioned scripts to materialize it from an empty data workspace.
+For every component in the final design, define its implementation phases in dependency order.
 
-## Nextflow round
+For `import-nf-core`, plan one direct coder phase using `importing-nf-core`. Do not plan a local
+TDD cycle or cleaner phase for the imported component.
 
-When test data is `concrete`, or when builder returns after the committed reference round, set the
-plan round to `nextflow`. On the later invocation, update the same plan with the generated paths and
-checksums, validate the original component design against the real artifacts, and change it only
-when evidence requires an adjustment. Identify direct nf-core imports separately from local TDD
-increments so builder can route them correctly.
+For each new local executable component or new local wiring that requires functional testing,
+resolve:
+
+- concrete input fixtures;
+- companions actually required by the selected component interface;
+- derived test prerequisites required only to execute the test;
+- the independent method used to produce reference outputs;
+- executable validation criteria for those reference outputs;
+- the production test boundary and expected snapshots or assertions.
+
+A derived test prerequisite is test infrastructure produced from another fixture, such as an
+index derived from a reference FASTA. It is not a product input unless the functional contract
+explicitly makes it one.
+
+The reference method may use an existing tool or upstream component command, or an independent
+Bash/Python implementation. It must not invoke, translate, or reuse the production implementation
+that the later test will exercise.
+
+For a new component requiring reference outputs, declare the phases in this order:
+
+1. `tester: reference-validation`
+2. `coder: reference-generation`
+3. `tester: production-test`
+4. `coder: production-implementation`
+5. `cleaner: production-refactor`
+
+The reference-validation phase defines executable expectations before reference generation.
+The reference-generation phase materializes required test prerequisites and reference outputs
+until those validations are GREEN. The production-test phase then freezes expectations and
+establishes RED against the not-yet-implemented production behavior. Cleaner is planned only
+after production GREEN.
+
+Generated reference data belongs under
+`{Project_Folder}/reference-data/<spec-slug-id>/` and remains untracked. Version any required
+generation or validation helpers under `{Plans_Folder}/<spec-slug-id>.reference/`. Record
+provenance, checksums, containers, commands and reproduction information required to recreate
+the artifacts from an empty workspace.

@@ -1,38 +1,33 @@
 # Nextflow component testing with nf-test
 
 Use this profile with the applicable nf-core testing conventions. Resolve paths, required plugins
-and execution profiles from the repository. The implementation plan declares the round.
+and execution profiles from the repository. The implementation plan declares the testing phase for the current increment.
 
-## Reference phase
+## Reference-validation phase
 
-When the plan round is `reference`, test the versioned Bash/Python reference scripts and their
-observable output contract. Prefer Bash for orchestration checks and Python for
-format, structured-content and numerical validation. Tests must cover declared filenames,
-input provenance and checksums, formats, cardinality, metadata associations, semantic properties,
-tolerances, failure behavior and reproducibility. A successful command or nonempty file is
-insufficient when content is specified.
+When the plan declares `tester: reference-validation`, write executable validations for the
+reference inputs and outputs before those outputs are generated. Use the input, prerequisite, output and
+validation contracts resolved by the plan.
 
-The test harness may run on the host, but every command that exercises the reference behavior must
-run through `apptainer exec --cleanenv` with the exact image and bind mounts pinned by the plan.
-Do not fall back to host-installed tools. Record the Apptainer version and resolved image identity
-with the test evidence.
+Validate declared filenames, provenance where relevant, formats, cardinality, metadata
+associations, semantic properties, tolerances, failure behavior and reproducibility. A successful
+command or nonempty file is insufficient when content is specified.
 
-Establish RED before the reference implementation exists, then validate the generated files under
-the untracked `{Project_Folder}/reference-data/<spec-slug-id>/` workspace. Do not create nf-test
-tests or snapshots in this phase.
-Missing source data, Apptainer, the pinned image or required tools are environment failures, not
-valid RED. Report concrete data paths, checksums and validation evidence to builder for the next
-round. For web sources, the committed test command must begin from an empty target and invoke the
-versioned materialization path; it must not depend on data left by an earlier local run.
+The test harness may run on the host, but commands exercising reference behavior must use the
+exact execution environment pinned by the plan. Do not fall back to undeclared host tools.
 
-## Nextflow phase
+Establish RED before the reference-generation phase. Do not generate the reference outputs,
+create nf-test production tests, or create snapshots in this phase. Missing source data,
+runtime dependencies or required tools are environment failures, not valid RED.
 
-Proceed only when the plan round is `nextflow` and it identifies accessible concrete inputs,
-intermediate artifacts and outputs with checksums. Use process tests for new local modules and
-workflow tests for local subworkflows or wiring. Create missing tests or extend existing coverage;
-preserve unrelated coverage. Stub tests verify declared outputs and wiring but do not replace real
-functional tests. Components classified `import-nf-core` are imported and validated directly by
-builder; do not create a separate local TDD cycle for the import itself.
+## Production-test phase
+
+Proceed only when the plan declares `tester: production-test` and the corresponding reference
+validation is GREEN. Use process tests for new local modules and workflow tests for local
+subworkflows or wiring. Create missing tests or extend existing coverage; preserve unrelated
+coverage. Stub tests verify declared outputs and wiring but do not replace real functional tests.
+
+Components whose plan contains only direct implementation phases do not receive a local TDD cycle.
 
 When those concrete files are untracked, the committed test command or its repository setup must
 materialize them with the versioned scripts before nf-test runs. Verify this from an empty target
@@ -55,8 +50,8 @@ invalid fixtures and unavailable dependencies are not valid RED. Do not use `--u
 accept output from the implementation under test. Tester owns every required snapshot; no snapshot
 may be deferred until after GREEN.
 
-Report the exact command, covered plan items, fixture paths and checksums, snapshot files, RED reason
-and unresolved environment failures.
+Report the exact command, covered plan items, fixture paths and checksums, snapshot files,
+phase-specific RED reason and unresolved environment failures.
 
 ## References
 

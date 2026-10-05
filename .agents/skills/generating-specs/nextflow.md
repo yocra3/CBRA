@@ -10,26 +10,19 @@ Add a `Test data` section to the specification:
 - Define the smallest executable scenario for each required behavior. Prefer a
   sample restricted to one chromosome or genomic region when that exercises
   the same interface and control flow as full-scale data.
-- Follow [reference test data](test_data.md) to search data for testing.
-- Record each concrete input, its role, path, format, required companion files,
-  checksums when available, and only the compatibility relationships that the
-  software relies on. Do not require independent inputs to belong to the same
-  sample or experiment.
-- Define deterministic output assertions appropriate to a functional test.
-  Do not require a complete biological truth set or source-supplied expected
-  output unless an acceptance criterion explicitly requires exact biological
-  correctness.
-- Mark the data as `concrete` when every required minimal scenario has the
-  inputs and assertions needed to execute and observe it. This does not require
-  whole-genome data, multiple samples, a production annotation bundle, or one
-  source containing every input and output.
-- Mark it `reference-required` only when a required minimal scenario still
-  lacks an essential input, companion file, compatibility relationship, or
-  deterministic assertion. Preserve and document all concrete inputs already
-  found, then describe only the missing artifacts and their required formats,
-  semantic properties, cardinality, metadata associations, and comparison
-  tolerances. Do not invent files or implementation details.
+- For each input role, define the format, semantic requirements and compatibility relationships
+  required by the behavior. A discovered file may be recorded as:
+  - `required` when that exact fixture is part of the functional requirement;
+  - `candidate` when it is a suitable fixture that implementation planning may replace;
+  - `unresolved` when only the required properties are known.
+  Record available companion files with a candidate, but do not make them requirements unless
+  the functional contract requires them.
+- Preserve the smallest suitable fixtures already found even when some input roles remain
+  unresolved. Describe unresolved inputs by their required format, semantic properties,
+  cardinality, metadata associations and compatibility constraints.
+- Define deterministic functional assertions independently from the concrete fixture whenever
+  possible.
+- Product owner searches reference datasets, not implementation components. Concrete fixture
+  resolution, implementation-specific companions, derived test prerequisites and reference
+  generation belong to implementation planning.
 
-Builder uses this value to select one Nextflow round or an automatic Bash/Python reference round
-followed by the Nextflow round. Product owner searches reference datasets, not implementation
-components.

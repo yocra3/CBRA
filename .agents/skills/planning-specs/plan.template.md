@@ -1,7 +1,6 @@
 ## Implementation Plan for <spec-slug-id>
 
 - **Specification**: `{Specs_Folder}/<spec-slug-id>.spec.md`
-- **Plan round**: `<reference | nextflow | single-round | not-applicable>`
 - **Pipeline root**: `<absolute path or not-applicable>`
 
 ## Environment and reproducibility
@@ -13,7 +12,7 @@
 
 | Boundary | Role | Path or materialization command | Format and semantics | Checksum |
 | --- | --- | --- | --- | --- |
-| `<boundary>` | `<input | intermediate | output>` | `<path or command>` | `<format, cardinality, metadata associations and tolerances>` | `<checksum, pending-reference-generation, or not-applicable>` |
+| `<boundary>` | <input | companion | prerequisite | reference-output | intermediate | output> | `<path or command>` | `<format, cardinality, metadata associations and tolerances>` | `<checksum, pending-reference-generation, or not-applicable>` |
 
 ## Component design
 
@@ -29,6 +28,10 @@
 
 ### Step 1: {Step Title}
 {short description of the step}
+
+- **Depends on:** `<step numbers or none>`
+- **Execution:** `<ordered agent:phase sequence>`
+
 - [ ] {One line Task 1 description}
 
 ## Blockers

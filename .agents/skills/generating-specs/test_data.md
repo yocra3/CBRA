@@ -38,7 +38,7 @@ Search for test data in the following order:
 
 ## Local repository
 
-Explore data used for testing modules, subworkflows, and workflows in the current repository. Inspect the metadata, headers, and other properties of candidate files to confirm that they satisfy the required input role and compatibility group. Use the smallest compatible dataset. Do not add test-data files to this repository.
+Explore data used for testing modules, subworkflows, and workflows in the current repository. Inspect the metadata, headers, and other properties of candidate files to confirm that they satisfy the required input role and compatibility group. Use the smallest compatible dataset. Do not add test-data files to this repository. Consider test data files defined as links to external repositories, such as Zenodo or nf-core/test-datasets, to be part of the local repository.
 
 ## nf-core/test-datasets
 
