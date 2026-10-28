@@ -320,11 +320,11 @@ Wire `GRIDSS_ANNOTSV` into the WGS SV branch. Provide the BWA index from `--inde
     - `nf-test test subworkflows/local/gridss_annotsv/tests/main.nf.test --profile singularity --ci`. The subworkflow tests also load `conf/modules.config`, so GRIDSS snapshots must stay unchanged. Explain any snapshot change before accepting it.
 - **cleaner:** Remove duplication in the SV branch, such as shared channel preparation, while keeping the contracts. Rerun all four commands.
 
-- [ ] Tester: add the GRIDSS, `--index`, multiple, default, publishing, and versions cases, and record RED.
-- [ ] Coder: provide the BWA index once from `--index` or `--fasta`, and invoke `GRIDSS_ANNOTSV` when selected.
-- [ ] Coder: publish Manta, Delly and GRIDSS raw and AnnotSV outputs under `SVs/{method}/`, and keep the GRIDSS-internal version dump out of `pipeline_info/`.
-- [ ] Coder: bring the pipeline and all three subworkflow tests to GREEN with `--ci`.
-- [ ] Cleaner: refactor after GREEN and rerun all four tests.
+- [x] Tester: add the GRIDSS, `--index`, multiple, default, publishing, and versions cases, and record RED.
+- [x] Coder: provide the BWA index once from `--index` or `--fasta`, and invoke `GRIDSS_ANNOTSV` when selected.
+- [x] Coder: publish Manta, Delly and GRIDSS raw and AnnotSV outputs under `SVs/{method}/`, and keep the GRIDSS-internal version dump out of `pipeline_info/`.
+- [x] Coder: bring the pipeline and all three subworkflow tests to GREEN with `--ci`.
+- [x] Cleaner: refactor after GREEN and rerun all four tests. (2026-10-28, nodo05: RED 6/12 failed for missing behavior; GREEN `--ci` `SUCCESS: Executed 15 tests` across sv_tools and the three subworkflow tests; no snapshot changes. GRIDSS-internal dump publishing disabled by a fully qualified selector, verified by review from run output. No BWA_INDEX `ext.prefix` added; see Step 5 docs.)
 
 ### Step 5: Documentation and final verification
 Describe `--sv_tools`, the three methods, and their output locations, then run the full verification set.
