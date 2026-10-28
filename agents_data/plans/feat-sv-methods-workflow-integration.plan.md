@@ -249,11 +249,11 @@ Mechanical rename with preserved contracts, plus the missing `MANTA_ANNOTSV` stu
     - `nf-test test subworkflows/local/gridss_annotsv/tests/main.nf.test --profile singularity --ci` passes with unchanged snapshots
 - **cleaner:** Remove only rename leftovers, such as stale comments or descriptions. Rerun the three commands above with `--ci`; all must pass.
 
-- [ ] Tester: add the `MANTA_ANNOTSV` stub test and config, move and rename the Delly tests and manual helper, and record RED.
-- [ ] Coder: rename both subworkflow directories, workflow names, `meta.yml`, the `workflows/snvs.nf` includes and calls, and the `conf/modules.config` selectors, with contracts unchanged.
-- [ ] Coder: create and review the snapshots, then bring the Manta, Delly, and GRIDSS subworkflow tests to GREEN with `--ci`.
-- [ ] Confirm the AC8 `rg` scan finds no matches outside `agents_data/`.
-- [ ] Cleaner: refactor after GREEN and rerun the three subworkflow tests.
+- [x] Tester: add the `MANTA_ANNOTSV` stub test and config, move and rename the Delly tests and manual helper, and record RED.
+- [x] Coder: rename both subworkflow directories, workflow names, `meta.yml`, the `workflows/snvs.nf` includes and calls, and the `conf/modules.config` selectors, with contracts unchanged.
+- [x] Coder: create and review the snapshots, then bring the Manta, Delly, and GRIDSS subworkflow tests to GREEN with `--ci`.
+- [x] Confirm the AC8 `rg` scan finds no matches outside `agents_data/`.
+- [x] Cleaner: refactor after GREEN and rerun the three subworkflow tests. (2026-10-28, nodo05: no cleanup needed; `--ci` run of Manta, Delly and GRIDSS tests `SUCCESS: Executed 3 tests`; AC8 scan empty.)
 
 ### Step 3: Add `--sv_tools` with validation and selection of Manta and Delly
 Declare the parameter, validate it before any process starts, and gate the existing Manta and Delly calls on the selection. GRIDSS is integrated in Step 4. Until then `gridss` is an accepted name that runs nothing.
