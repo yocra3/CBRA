@@ -336,11 +336,11 @@ Describe `--sv_tools`, the three methods, and their output locations, then run t
   - The AC8 `rg` scan finds no matches
   - `python3 -m json.tool nextflow_schema.json` succeeds
 
-- [ ] Update `docs/usage.md` (the SV paragraph under "Pipeline steps"): `--sv_tools` syntax, accepted values, the default, schema rejection of unknown names in every run, empty-selection and `--svs false` behavior (an empty value is passed as `--sv_tools=`, `--sv_tools ' '`, or `sv_tools: ''` in a params file, not as `--sv_tools ''`), the fact that WES ignores a valid selection, and GRIDSS with `--index` or a derived index.
-- [ ] Update `README.md` (SV analysis bullets): replace "all available SV callers are run together" with selectable Manta, Delly and GRIDSS, and note that AnnotSV annotates every selected method.
-- [ ] Add an SVs section to `docs/output.md` with `SVs/manta/`, `SVs/delly/`, `SVs/gridss/` and their raw and AnnotSV files.
-- [ ] Add a `CHANGELOG.md` entry under `v1.0dev` `Added` (the `--sv_tools` selection and GRIDSS integration) and a rename note (`sv_calling` -> `manta_annotsv`, `sv_calling_delly` -> `delly_annotsv`, new output paths).
-- [ ] Run the final verification set above and record the results.
+- [x] Update `docs/usage.md` (the SV paragraph under "Pipeline steps"): `--sv_tools` syntax, accepted values, the default, schema rejection of unknown names in every run, empty-selection and `--svs false` behavior (an empty value is passed as `--sv_tools=`, `--sv_tools ' '`, or `sv_tools: ''` in a params file, not as `--sv_tools ''`), the fact that WES ignores a valid selection, and GRIDSS with `--index` or a derived index.
+- [x] Update `README.md` (SV analysis bullets): replace "all available SV callers are run together" with selectable Manta, Delly and GRIDSS, and note that AnnotSV annotates every selected method.
+- [x] Add an SVs section to `docs/output.md` with `SVs/manta/`, `SVs/delly/`, `SVs/gridss/` and their raw and AnnotSV files.
+- [x] Add a `CHANGELOG.md` entry under `v1.0dev` `Added` (the `--sv_tools` selection and GRIDSS integration) and a rename note (`sv_calling` -> `manta_annotsv`, `sv_calling_delly` -> `delly_annotsv`, new output paths).
+- [x] Run the final verification set above and record the results. (2026-10-28, nodo05: `--ci` run of the four nf-test files `SUCCESS: Executed 15 tests`; AC8 scan empty; schema JSON valid. Docs record that GRIDSS uses a BWA index only when named after the FASTA file name, otherwise builds its own.)
 
 ## Risks and spec notes (not resolved by changing the spec)
 
