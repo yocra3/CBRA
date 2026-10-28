@@ -288,11 +288,11 @@ Declare the parameter, validate it before any process starts, and gate the exist
     - `nf-test test subworkflows/local/manta_annotsv/tests/main.nf.test subworkflows/local/delly_annotsv/tests/main.nf.test --profile singularity --ci` passes
 - **cleaner:** Simplify the parsing and selection code while keeping the contract. Rerun both commands above.
 
-- [ ] Tester: write the pipeline-level stub tests for single selection, whitespace and duplicates, unknown name (WGS SV, `--svs false`, `--ngs_type wes`), empty selection, and `--svs false`, and record RED from the stub run.
-- [ ] Coder: declare `--sv_tools` in `nextflow.config`, and in `nextflow_schema.json` with the exact `pattern` and `errorMessage`.
-- [ ] Coder: implement parsing and the empty-selection warning contract, and gate Manta and Delly on the selection. Leave WES unchanged.
-- [ ] Coder: bring the pipeline and the Manta and Delly subworkflow tests to GREEN with `--ci`.
-- [ ] Cleaner: refactor after GREEN and rerun the tests.
+- [x] Tester: write the pipeline-level stub tests for single selection, whitespace and duplicates, unknown name (WGS SV, `--svs false`, `--ngs_type wes`), empty selection, and `--svs false`, and record RED from the stub run.
+- [x] Coder: declare `--sv_tools` in `nextflow.config`, and in `nextflow_schema.json` with the exact `pattern` and `errorMessage`.
+- [x] Coder: implement parsing and the empty-selection warning contract, and gate Manta and Delly on the selection. Leave WES unchanged.
+- [x] Coder: bring the pipeline and the Manta and Delly subworkflow tests to GREEN with `--ci`.
+- [x] Cleaner: refactor after GREEN and rerun the tests. (2026-10-28, nodo05: RED 7/8 failed for missing behavior; GREEN `--ci` `SUCCESS: Executed 10 tests` across sv_tools, Manta and Delly tests. `SVs/manta/` assertion deferred to Step 4 with publishing.)
 
 ### Step 4: Integrate GRIDSS with the BWA index, method-specific publishing, and version reporting
 Wire `GRIDSS_ANNOTSV` into the WGS SV branch. Provide the BWA index from `--index` or `--fasta`. Publish all three methods under `SVs/{method}/`, and report versions for the selected methods only.
