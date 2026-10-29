@@ -152,8 +152,10 @@ always execute both Manta and Delly and can never execute GRIDSS.
   `sv_calling_delly` becomes `delly_annotsv`; rename all references.
 - Users select the SV tools to run from the pipeline invocation, with a default and validation
   of unknown names.
-- No new modules or subworkflows should be added by this specification. Only refactoring, renaming, and integration of existing subworkflows is in scope. No merging of call sets
-  is in scope.
+- No new modules or subworkflows should be added by this specification. Only refactoring, renaming, and integration of existing subworkflows is in scope. No merging of call sets is in scope.
+- An exception of the previous instructions is the modification of `gridss_annotsv` or their modules. This subworkflows and their modules can be modified to allow passing
+  BWA index to GRIDSS, but no new functionality is in scope. An additional module can also 
+be added to ensure this funcionality.
 
 ## Unresolved Questions
 

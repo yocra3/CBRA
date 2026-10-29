@@ -2,7 +2,7 @@
 
 - **Specification**: `agents_data/specs/feat-sv-methods-workflow-integration.spec.md` (ID `feat-sv-methods-workflow-integration`)
 - **Pipeline root**: `/beegfs/home/cruizarenas/CBRA`
-- **Ownership**: This is the sole plan for this specification. Tester owns test files, fixtures, and snapshot review. Coder owns renames, module stub patches, parameter and selection wiring, configuration, and documentation. Cleaner owns refactoring after GREEN only. No new modules or subworkflows are added. Do not touch the untracked `modules/nf-core/bcftools/stats/`. Do not run Git operations; the builder commits each step.
+- **Ownership**: This is the sole plan for this specification. Tester owns test files, fixtures, and snapshot review. Coder owns renames, module stub patches, parameter and selection wiring, configuration, and documentation. Cleaner owns refactoring after GREEN only. No new modules or subworkflows are added. Step 6 adds a local patch to the imported `gridss/gridss` module (spec User-confirmed Decisions: "`gridss_annotsv` or their modules ... can be modified to allow passing BWA index to GRIDSS"). Coder owns the patch, its `nf-core modules patch` diff and the `modules.json` registration; tester owns the tests. Do not change the files of the untracked `modules/nf-core/bcftools/stats/`. By user decision of 2026-10-29, which overrides the earlier decision to register both modules, Step 6 registers only `gridss/gridss`; `bcftools/stats` is not registered in `modules.json` and its directory stays untracked, uncommitted and untouched. Do not run Git operations; the builder commits each step.
 
 ## Environment and reproducibility
 
@@ -77,6 +77,11 @@ functional_requirements:
     method: BWA index
     inputs: ["params.index directory or [meta,fasta]"]
     outputs: ["[meta,bwa_index_dir]", "versions"]
+  - id: name-bwa-index-for-gridss
+    operation: Present the BWA index to GRIDSS under the names GRIDSS 2.13.2 checks (${reference}.{amb,ann,bwt,pac,sa}, i.e. <fasta.name>.*), whatever the index prefix, so GRIDSS does not run bwa index itself.
+    method: symbolic links created in the GRIDSS task (no copies)
+    inputs: ["[meta,fasta]", "[meta,bwa_index_dir]"]
+    outputs: ["<fasta.name>.{amb,ann,bwt,pac,sa} links in the GRIDSS task dir"]
   - id: publish-sv-results
     operation: Publish each method's raw calls and AnnotSV results under ${outdir}/SVs/{method}/.
     method: publishDir configuration
@@ -102,12 +107,19 @@ resolutions:
     resolution: reuse-local
     path: subworkflows/local/gridss_annotsv
     evidence:
-      - "Verified spec feat-gridss-annotsv-wgs-single-sample; take includes ch_bwa_index [meta, dir]; functional nf-test passes at planning baseline. GRIDSS_GRIDSS (gridss/gridss) is tracked but absent from modules.json."
+      - "Verified spec feat-gridss-annotsv-wgs-single-sample; take includes ch_bwa_index [meta, dir]; functional nf-test passes at planning baseline. GRIDSS_GRIDSS (gridss/gridss) is tracked but absent from modules.json (registered in Step 6, user decision 2026-10-29)."
   - covers: [provide-bwa-index]
     resolution: reuse-local
     path: modules/nf-core/bwa/index (BWA_INDEX already included in workflows/snvs.nf)
     evidence:
       - "Emits [meta, bwa/] directory; nf-core gridss/gridss test feeds BWA_INDEX.out.index directly to GRIDSS_GRIDSS. SNVS already builds ch_index from --index or BWA_INDEX for mapping."
+      - "Files are named bwa/<fasta.baseName>.* (genome.*), not the <fasta.name>.* (genome.fasta.*) that GRIDSS checks; RED run 2026-10-29 (Step 6) shows GRIDSS rebuilding the index. Covered by name-bwa-index-for-gridss."
+  - covers: [name-bwa-index-for-gridss]
+    resolution: reuse-local (local patch)
+    path: modules/nf-core/gridss/gridss (nf-core @066da9c5f80fbc42ec51bb720956e5213a4aa657 + gridss-gridss.diff, Step 6)
+    evidence:
+      - "Unpatched GRIDSS_GRIDSS stages the index with cp -s and keeps the original names, so no supported input or ext option renames them. BWA_INDEX with a scoped ext.prefix = fasta.name cannot cover a user --index, which can have any prefix and never goes through BWA_INDEX, and the user decided BWA_INDEX stays unchanged."
+      - "Design decided by the user 2026-10-29: a local patch of the gridss/gridss script (variant A), instead of a new LINK_BWA_INDEX process. The inputs, outputs and stub stay unchanged, so GRIDSS_ANNOTSV and workflows/snvs.nf are untouched. Authority: the spec exception for gridss_annotsv and its modules."
   - covers: [publish-sv-results]
     resolution: reuse-local
     path: conf/modules.config
@@ -130,7 +142,7 @@ resolutions:
 nfcore:
   checked: false
   modules_sha: null
-  note: "Every executable requirement is covered by components already installed locally, and the specification forbids adding modules, so no remote nf-core search was needed. Installed SHAs come from modules.json."
+  note: "Every executable requirement is covered by components already installed locally. name-bwa-index-for-gridss is covered by a user-decided local patch of gridss/gridss (spec exception for gridss_annotsv and its modules), so no remote nf-core search was needed. Installed SHAs come from modules.json. Step 6 registers only gridss/gridss at 066da9c5f80fbc42ec51bb720956e5213a4aa657, as in commit a5d33e7; bcftools/stats is not registered (user decision 2026-10-29)."
 ```
 
 ## Test data and artifacts
@@ -145,6 +157,8 @@ nfcore:
 | `MANTA_ANNOTSV` subworkflow (Scenario B) | BAM + BAI, FASTA + FAI | Same as the Delly test: `genomics/homo_sapiens/illumina/bam/test2.paired_end.recalibrated.sorted.bam(.bai)`, `genomics/homo_sapiens/genome/chr21/sequence/genome.fasta(.fai)` under `params.modules_testdata_base_path` | One sample `[id:'test']`, stub. The Manta config input is the tracked `assets/configManta.ini` or an empty optional value. Annotations `[[id:'annotations'], []]` and empty optional AnnotSV tuples, as in the Delly test | not applicable |
 | `DELLY_ANNOTSV` subworkflow | existing fixture | unchanged inputs of `sv_calling_delly/tests/main.nf.test` | Reused under the new name | not applicable |
 | `GRIDSS_ANNOTSV` subworkflow | existing fixture | unchanged; pinned test-datasets commit `c16e7bd8bbc7ed534a3652a608ed0b2098037bdd` plus local `agents_data/reference-data` | Real functional test, unchanged | snapshots unchanged |
+| `GRIDSS_ANNOTSV` derived index (Step 6) | derived prerequisite | `subworkflows/local/gridss_annotsv/tests/derived_bwa_index.nf.test`: `BWA_INDEX` in a `setup` block on the pinned `genomics/homo_sapiens/genome/genome.fasta`; its `.out.index` is `ch_bwa_index`. Same BAM, FASTA, FAI and AnnotSV inputs as the row above | Real functional run. `[meta, bwa/]` with `genome.{amb,ann,bwt,pac,sa}`, whose prefix (`genome`) differs from the FASTA name (`genome.fasta`) | not applicable (no snapshot) |
+| `GRIDSS_GRIDSS` nf-core module (Step 6) | existing fixture | `modules/nf-core/gridss/gridss/tests/main.nf.test`, unchanged. `human - bam - bwa` feeds `BWA_INDEX.out.index` (`bwa/genome.*`, prefix unrelated to `genome.fasta`), so it exercises the patch. `human - bam`, `human - cram` and `human - bam - stub` pass `[[], []]` | Real runs plus one stub. Branch-tracked `modules` test-datasets from `tests/config/nf-test.config` | snapshots unchanged |
 | Outputs | output | `${outdir}/SVs/manta/`, `${outdir}/SVs/delly/`, `${outdir}/SVs/gridss/` | Raw calls (VCF.gz plus index) and AnnotSV results per sample, one directory per method; no cross-method overwrite | not applicable |
 
 No reference data generation is needed. There are no new executable components, and the stub and contract assertions are deterministic.
@@ -155,7 +169,8 @@ No reference data generation is needed. There are no new executable components, 
 | --- | --- | --- | --- |
 | `ANNOTSV_ANNOTSV` | reuse-local | Unchanged interface. Its local patch's `stub:` must also emit `versions.yml` so stub runs succeed (Step 1). The production `script:` stays the same | `modules/nf-core/annotsv/annotsv` (nf-core `annotsv/annotsv` @`36e47ba3be943154e9bedba0397045684d77654e` + `annotsv-annotsv.diff`) |
 | `MANTA_GERMLINE` | reuse-local | Unchanged interface. Its local patch's `stub:` must emit `versions.yml` (Step 1) | `modules/nf-core/manta/germline` (@`3485512d3930df1fcb66b5f92af639179bdfe4be` + `manta-germline.diff`) |
-| `DELLY_CALL`, `BCFTOOLS_INDEX`, `GRIDSS_GRIDSS`, `TABIX_TABIX`, `BWA_INDEX`, `CUSTOM_DUMPSOFTWAREVERSIONS`, `MULTIQC`, `ANNOTSV_INSTALLANNOTATIONS` | reuse-local | Consumed unchanged | `modules/nf-core/...` |
+| `GRIDSS_GRIDSS` | reuse-local (local patch, Step 6) | Unchanged interface and `stub:`. The patched `script:` presents a non-empty BWA index under the FASTA file name (see the GRIDSS BWA index patch contract) | `modules/nf-core/gridss/gridss` (nf-core `gridss/gridss` @`066da9c5f80fbc42ec51bb720956e5213a4aa657` + `gridss-gridss.diff`, both registered in Step 6) |
+| `DELLY_CALL`, `BCFTOOLS_INDEX`, `TABIX_TABIX`, `BWA_INDEX`, `CUSTOM_DUMPSOFTWAREVERSIONS`, `MULTIQC`, `ANNOTSV_INSTALLANNOTATIONS` | reuse-local | Consumed unchanged | `modules/nf-core/...` |
 | `MANTA_ANNOTSV` | local-wiring (rename) | `subworkflows/local/manta_annotsv/`. Same take/emit as current `SV_CALLING`: take `ch_bam, ch_fasta, ch_fai, ch_manta_config, ch_annotsv_annotations, ch_candidate_genes, ch_false_positive_snv, ch_gene_transcripts`; emit `annotated_tsv, annotated_vcf, unannotated_tsv, diploid_sv_vcf, candidate_sv_vcf, versions`. New stub nf-test | from `subworkflows/local/sv_calling` |
 | `DELLY_ANNOTSV` | local-wiring (rename) | `subworkflows/local/delly_annotsv/`. Same take/emit as current `SV_CALLING_DELLY`. Tests, snapshot, and manual helper move with it | from `subworkflows/local/sv_calling_delly` |
 | `GRIDSS_ANNOTSV` | reuse-local | Unchanged take `ch_bam, ch_fasta, ch_fai, ch_bwa_index, ch_annotsv_annotations`; emit `gridss_vcf, gridss_tbi, annotsv_vcf, annotsv_tsv, annotsv_unannotated_tsv, versions (software_versions.yml), versions_mqc` | `subworkflows/local/gridss_annotsv` |
@@ -201,6 +216,22 @@ No reference data generation is needed. There are no new executable components, 
   - `GRIDSS_ANNOTSV.out.versions` is a consolidated `software_versions.yml`. It is valid YAML keyed by process name and may be mixed into `ch_versions`.
   - `GRIDSS_ANNOTSV.out.versions_mqc` must not be fed to MultiQC, because its section id would duplicate `software_versions`.
   - The bare `withName: CUSTOM_DUMPSOFTWAREVERSIONS` selector also matches `GRIDSS_ANNOTSV:CUSTOM_DUMPSOFTWAREVERSIONS`. The GRIDSS-internal dump must therefore not publish into `pipeline_info/`, where it would overwrite the pipeline-level `software_versions.yml`/`software_versions_mqc.yml`.
+- **GRIDSS BWA index patch (Step 6)** (user decision 2026-10-29, variant A):
+  - In `modules/nf-core/gridss/gridss/main.nf`, the patch replaces only the guarded `cp -s ${bwa_index}/* .` line (`bwa_index ? ... : ""`). The `input:`, `output:`, `when:` and `stub:` blocks, the container, and the `gridss` command stay unchanged.
+  - Non-empty index: the index prefix is the name of the single `*.amb` file in the staged index directory, without `.amb`. The task dir gets symbolic links named `<fasta name>.<suffix>`, where `<fasta name>` is the staged FASTA file name used as `--reference`, for exactly the five suffixes `amb`, `ann`, `bwt`, `pac` and `sa` (user decision 2026-10-29). Each link resolves to `<prefix>.<same suffix>` in the index directory. No file is copied, and no other file of the index directory is linked into the task dir. GRIDSS then finds `${reference}.bwt` and does not run `bwa index`. This holds for the derived index and for a user `--index` with any prefix.
+  - Unusable index (user decision 2026-10-29): the non-empty index directory has no top-level `*.amb`, several top-level `*.amb`, or is missing any of `<prefix>.{amb,ann,bwt,pac,sa}`. The patch then creates no link at all, raises no error and prints no warning, and GRIDSS builds its own index as it does today. No partial set of links is created, because GRIDSS checks only `${reference}.bwt`.
+  - Validating the index belongs to the workflow, outside GRIDSS and its module, and is out of scope for this plan.
+  - Empty index `[meta, []]` (`subworkflows/local/gridss_annotsv/tests/main.nf.test`, and the nf-core module tests other than `human - bam - bwa`): the guard renders the same empty line as today. The script is unchanged, GRIDSS builds its own index as today, and those tests and snapshots stay unchanged.
+  - Unchanged: `GRIDSS_ANNOTSV` (take, emit, wiring, `meta.yml`), `BWA_INDEX`, `BWA_MEM`, `MAPPING`, the `workflows/snvs.nf` wiring, `conf/modules.config`, and the version outputs. The GRIDSS staging assertions in `tests/sv_tools.nf.test` (`bwa` and the `conf` stand-in staged by `GRIDSS_GRIDSS`) still hold, because the inputs and the stub are unchanged.
+  - `modules.json` (user decision 2026-10-29, which overrides the earlier decision to register both modules), in this order:
+    1. Copy only the `gridss/gridss` entry verbatim from `git show a5d33e7:modules.json` (`branch: master`, `git_sha: 066da9c5f80fbc42ec51bb720956e5213a4aa657`, `installed_by: ["modules"]`). nf-core does not compute it. Do this while the module is unmodified, and verify that its local files still match the registered SHA. At planning (2026-10-29, read-only `git`), its files were byte-identical to their `a5d33e7` import. Do not register `bcftools/stats`.
+    2. Edit `modules/nf-core/gridss/gridss/main.nf`.
+    3. Run `nf-core modules patch gridss/gridss`. It writes `modules/nf-core/gridss/gridss/gridss-gridss.diff` and the `"patch"` key, in the same form as the `annotsv/annotsv` and `manta/germline` entries.
+  - Risk kept: `nf-core modules patch` runs nf-core's `check_up_to_date`, which could touch other `modules.json` entries. Review the `modules.json` diff afterwards. Only the `gridss/gridss` registration and its `"patch"` entry are expected. If the patch adds a `bcftools/stats` entry or changes anything else, the coder removes the addition from `modules.json` and the builder reports it to the user. If nf-core offers to move or remove modules, or cannot run without registering `bcftools/stats`, stop and report; do not improvise.
+  - Consequences of these decisions (no user choice needed):
+    - **`bcftools/stats` not registered** (user decision 2026-10-29): `modules/nf-core/bcftools/stats/` stays untracked and untouched. It is not committed and not added to `modules.json`. The module is unused by the pipeline.
+    - **Index already named `<fasta name>.*`** (for example a `--index` directory holding `genome.fasta.bwt`): no special handling. The links live in the task dir and point into the staged index directory, a different directory, so no link can point to itself. Their names do not collide with the staged FASTA (`<fasta name>`) or FAI (`<fasta name>.fai`).
+  - No extra tests are added for these decided behaviours, including the unusable index (user decision 2026-10-29).
 
 ## Acceptance criteria coverage
 
@@ -211,17 +242,17 @@ No reference data generation is needed. There are no new executable components, 
 | AC3 Several methods run once per sample and publish to distinct method locations | 4 | Multiple-selection and default stub tests: one caller task per method for the single sample; `SVs/manta/`, `SVs/delly/`, `SVs/gridss/` each hold that method's raw and AnnotSV files only |
 | AC4 Unknown name stops before any process, whatever `--svs`/`--ngs_type`, with a `nextflow_schema.json` validation error naming the value and listing accepted values | 3 | Three pipeline stub tests with an unknown name: `--svs true --ngs_type wgs`, `--svs false`, and `--ngs_type wes`. Each run fails, stderr contains both expected-error substrings from the contract, and the trace has zero tasks. Schema review: the `pattern`/`errorMessage` match the contract |
 | AC5 Empty selection: warning that at least one SV tool is required; run continues with no SV results | 3 | Pipeline stub tests with `--sv_tools ''` (and separators only, e.g. `' , '`): success, the warning text appears in the output, no SV process runs, no `SVs/` directory exists |
-| AC6 GRIDSS uses `--index` or a BWA index derived from `--fasta` | 4 | GRIDSS stub tests with and without `--index`: `BWA_INDEX` runs exactly once without `--index` and never with it, and the GRIDSS task runs in both cases |
+| AC6 GRIDSS uses `--index` or a BWA index derived from `--fasta` | 4, 6 | Step 4: GRIDSS stub tests with and without `--index`: `BWA_INDEX` runs exactly once without `--index` and never with it, and the GRIDSS task runs in both cases. Step 6, which corrects the 2026-10-29 real-run finding that GRIDSS ignored the derived index: the real `derived_bwa_index.nf.test` run shows no `Running bwa index` in the GRIDSS logs, no `cp -s` in `.command.sh`, and no regular `genome.fasta.{amb,ann,bwt,pac,sa}` file, and each of those names resolves to the `BWA_INDEX` file with the same suffix. The patch derives the prefix from `*.amb`, not from the FASTA name, so a user `--index` with any prefix is covered the same way. The nf-core `human - bam - bwa` module test passes with an unchanged snapshot. The Step 4 stub tests keep showing GRIDSS staging the `BWA_INDEX` output or the `--index` directory |
 | AC7 WES runs the CNV path unchanged and ignores the selection of a valid `--sv_tools` | 3, 4, 5 | Diff review: the `ngs_type == 'wes'` branch and `.*CNVS_CALLING:*` selectors are unchanged, and Groovy selection and the empty-selection warning apply only to WGS SV runs. Under WES, only schema validation of unknown names applies (Step 3 `--ngs_type wes` unknown-name test) |
 | AC8 Names `{method}_annotsv`/`{METHOD}_ANNOTSV`; no `sv_calling`/`SV_CALLING`/`sv_calling_delly`/`SV_CALLING_DELLY` reference | 2, 5 | `rg -n -i 'sv_calling' --glob '!agents_data/**' --glob '!.nf-test*' --glob '!.git/**' /beegfs/home/cruizarenas/CBRA` returns nothing. Renamed tests pass |
-| AC9 Passing nf-test coverage: three subworkflow tests plus pipeline stub tests (single, multiple, default, unknown) | 1, 2, 3, 4, 5 | All four nf-test commands in Step 5 pass with `--ci` |
+| AC9 Passing nf-test coverage: three subworkflow tests plus pipeline stub tests (single, multiple, default, unknown) | 1, 2, 3, 4, 5, 6 | All four nf-test commands in Step 5 pass with `--ci`. After Step 6, the Step 6 final verification set passes with `--ci`, including the nf-core `gridss/gridss` module tests |
 
 ### Step 1: Make patched AnnotSV and Manta stubs emit version evidence
 Restore stub runnability so that existing and planned stub tests can pass. Production `script:` blocks and the module interfaces stay unchanged.
 
 - **Depends on:** none
 - **Execution:** `coder: direct module-patch`. No preceding tester phase: the RED evidence is the existing Delly stub test, which fails with `Missing output file(s) versions.yml ... ANNOTSV_ANNOTSV` (planning baseline).
-- **Approval (recorded 2026-10-28):** the user approved this step as planned, relayed by the coordinator. The approved scope is to add `versions.yml` creation to the `stub:` blocks of `annotsv/annotsv` and `manta/germline` only, and to regenerate both patches with `nf-core modules patch`. Real `script:` blocks stay unchanged. No other module changes.
+- **Approval (recorded 2026-10-28):** the user approved this step as planned, relayed by the coordinator. The approved scope is to add `versions.yml` creation to the `stub:` blocks of `annotsv/annotsv` and `manta/germline` only, and to regenerate both patches with `nf-core modules patch`. Real `script:` blocks stay unchanged. No other module changes in this step. Step 6 patches `gridss/gridss` and registers only `gridss/gridss` in `modules.json`, by user decision of 2026-10-29; `bcftools/stats` is not registered.
 - **RED (already recorded):** `nf-test test subworkflows/local/sv_calling_delly/tests/main.nf.test --profile singularity --ci` fails on `versions.yml`.
 - **GREEN:** the same command passes, or fails only on a snapshot mismatch limited to version-file md5 values. In that case, run once without `--ci` and rerun with `--ci`. The test is renamed in Step 2, so snapshot refresh may also be deferred to Step 2.
 
@@ -342,17 +373,100 @@ Describe `--sv_tools`, the three methods, and their output locations, then run t
 - [x] Add a `CHANGELOG.md` entry under `v1.0dev` `Added` (the `--sv_tools` selection and GRIDSS integration) and a rename note (`sv_calling` -> `manta_annotsv`, `sv_calling_delly` -> `delly_annotsv`, new output paths).
 - [x] Run the final verification set above and record the results. (2026-10-28, nodo05: `--ci` run of the four nf-test files `SUCCESS: Executed 15 tests`; AC8 scan empty; schema JSON valid. Docs record that GRIDSS uses a BWA index only when named after the FASTA file name, otherwise builds its own.)
 
+### Step 6: Make GRIDSS use the supplied or derived BWA index
+A real run on 2026-10-29 corrected AC6. `BWA_INDEX` writes `bwa/<fasta.baseName>.*` (`genome.*`), but GRIDSS 2.13.2 checks for `${reference}.bwt` (`genome.fasta.bwt`). When that file is missing, GRIDSS runs `bwa index` itself and ignores the index it was given. A local patch of the imported `gridss/gridss` script presents the index under the FASTA file name, as set out in the GRIDSS BWA index patch contract. `GRIDSS_ANNOTSV`, `BWA_INDEX`, `BWA_MEM`, `MAPPING` and the `workflows/snvs.nf` wiring stay unchanged.
+
+- **Depends on:** 5
+- **Execution:** `coder: direct module-registration` -> `tester: production-test` -> `coder: production-implementation` -> `cleaner: production-refactor`, then `coder: direct documentation` after verification. There are no reference-validation or reference-generation phases: the input names and paths fix the expected output (see Test data).
+- **Precondition:** none. The user decided the former open points on 2026-10-29 (see the GRIDSS BWA index patch contract).
+- **Shell prefix:** run every command of this step after the plan's shell prefix:
+
+  ```bash
+  cd /beegfs/home/cruizarenas/CBRA
+  source /beegfs/home/cruizarenas/CBRA/.codex-cluster/load-conda-environment.sh
+  export NXF_SYNTAX_PARSER=v1
+  export NXF_SINGULARITY_CACHEDIR=/beegfs/home/cruizarenas/.nxf-singularity-cache
+  ```
+
+- **RED (already recorded, 2026-10-29):** `nf-test test subworkflows/local/gridss_annotsv/tests/derived_bwa_index.nf.test --profile singularity --ci` failed (1 test), with 2 of 6 assertions failing:
+  - `Running bwa index` appears in the GRIDSS `.command.log`.
+  - GRIDSS creates regular `genome.fasta.*` files, while `genome.*` are symlinks to the `BWA_INDEX` output.
+  - Work dir: `.nf-test/tests/f2c21d1f2abdb55e313dfe511dbfcb8/work/5a/eee5c490b975828d04af3abf60913f`.
+  - The earlier log under `.nf-test/tests/5888b93af7d71bf88c0b43870df97320/` came from `main.nf.test`, which passes an empty index. It is not evidence for AC6.
+- **coder (registration, user decision 2026-10-29):**
+  - Before any edit to `modules/nf-core/gridss/gridss/`, register only `gridss/gridss` in `modules.json` as the contract describes (order item 1). Do not register `bcftools/stats`.
+  - Leave the module files unchanged.
+  - Evidence:
+    - `python3 -m json.tool modules.json` succeeds.
+    - The new `gridss/gridss` entry equals the one in `git show a5d33e7:modules.json`.
+    - No other `modules.json` entry changes.
+    - The local `gridss/gridss` files still match the registered SHA `066da9c5f80fbc42ec51bb720956e5213a4aa657`. The coder picks the check.
+- **tester (RED):**
+  - In `derived_bwa_index.nf.test`, the staging assertions expect variant A:
+    - `.command.sh` has no `cp -s` line, which replaces the current `cp -s` regex assertion.
+    - `genome.fasta.{amb,ann,bwt,pac,sa}` in the GRIDSS task dir are symlinks that resolve to the `BWA_INDEX` `bwa/genome.*` file with the same suffix. This replaces the current `genome.*` symlink assertion.
+    - Keep the no-rebuild assertions (no `Running bwa index`, no regular `genome.fasta.{amb,ann,bwt,pac,sa}` file) and the light output checks.
+  - Add no other test case, including none for an unusable index (user decision 2026-10-29).
+  - `tests/sv_tools.nf.test` and the nf-core `gridss/gridss` module tests stay unchanged. Under variant A, their staging and snapshot expectations still hold. They are regression guards, not RED.
+  - Expected RED:
+    - The derived test fails on the `cp -s`, link-name and no-rebuild assertions.
+    - A failure for any other reason is not valid RED.
+  - Commands:
+    - `nf-test test subworkflows/local/gridss_annotsv/tests/derived_bwa_index.nf.test --profile singularity --ci`
+    - `nf-test test tests/sv_tools.nf.test --profile singularity --ci`
+    - `nf-test test modules/nf-core/gridss/gridss/tests/main.nf.test --profile singularity --ci`
+- **coder (GREEN):**
+  - In `modules/nf-core/gridss/gridss/main.nf`, replace only the guarded `cp -s` line. Follow the GRIDSS BWA index patch contract.
+  - Then run `nf-core modules patch gridss/gridss` from the pipeline root. It writes `modules/nf-core/gridss/gridss/gridss-gridss.diff`, and `modules.json` gains the `"patch"` key.
+  - Review the `modules.json` diff. Only the `gridss/gridss` registration and its `"patch"` entry may differ from `HEAD`. If the patch adds a `bcftools/stats` entry or changes anything else, remove the addition from `modules.json`; the builder reports it to the user. If nf-core offers to move or remove modules, or cannot run without registering `bcftools/stats`, stop and report; do not improvise.
+  - The diff touches only `main.nf`, outside the `stub:` block.
+  - Do not change `GRIDSS_ANNOTSV`, `BWA_INDEX`, `BWA_MEM`, `MAPPING`, `workflows/snvs.nf`, `conf/modules.config`, or any file under `modules/nf-core/bcftools/stats/`.
+  - **GREEN:**
+    - The three commands above pass with `--ci`.
+    - In the real derived run, the GRIDSS task logs have no `Running bwa index` and the task dir has no regular `genome.fasta.{amb,ann,bwt,pac,sa}` file. Each of those names resolves to the `BWA_INDEX` output with the same suffix.
+    - The final verification set below passes.
+  - **Snapshots that must stay unchanged:**
+    - `subworkflows/local/gridss_annotsv/tests/main.nf.test.snap`
+    - `subworkflows/local/manta_annotsv/tests/main.nf.test.snap`
+    - `subworkflows/local/delly_annotsv/tests/main.nf.test.snap`
+    - `modules/nf-core/gridss/gridss/tests/main.nf.test.snap`
+
+    No new snapshot is expected. Explain any snapshot change, and do not accept it without the user.
+- **cleaner:**
+  - Refactor only the patched block, keeping the contract.
+  - Regenerate the diff with `nf-core modules patch gridss/gridss` if the block changes.
+  - Rerun the final verification set.
+- **Final verification set** (`--ci`):
+  - `nf-test test subworkflows/local/manta_annotsv/tests/main.nf.test subworkflows/local/delly_annotsv/tests/main.nf.test subworkflows/local/gridss_annotsv/tests/main.nf.test subworkflows/local/gridss_annotsv/tests/derived_bwa_index.nf.test modules/nf-core/gridss/gridss/tests/main.nf.test tests/sv_tools.nf.test --profile singularity --ci` passes
+  - The AC8 `rg` scan finds no matches
+  - `python3 -m json.tool modules.json` succeeds, and the `gridss/gridss` entry points at `gridss-gridss.diff`
+- **Commit:** the builder commits.
+  - The new test `subworkflows/local/gridss_annotsv/tests/derived_bwa_index.nf.test` (untracked today) is committed together with the fix: patched `main.nf`, `gridss-gridss.diff`, the `modules.json` `patch` key, and any updated tests. It is never committed on its own.
+  - The registration (the `gridss/gridss` `modules.json` entry only) may be a separate earlier commit, because it changes no behavior. `modules/nf-core/bcftools/stats/` is never committed and stays untracked (user decision 2026-10-29).
+
+- [x] Coder: register only `gridss/gridss` in `modules.json` with unmodified module files, copied verbatim from `a5d33e7`; do not register `bcftools/stats`. (2026-10-29, nodo01: entry copied from `a5d33e7`, SHA `066da9c5f80fbc42ec51bb720956e5213a4aa657`; before the edit the module files were byte-identical to upstream at that SHA.)
+- [x] Tester: update the `derived_bwa_index.nf.test` assertions for variant A and record RED. (2026-10-29, nodo01: derived test 1 failed, 4 of 6 assertions: `cp -s`, link names, `Running bwa index`, regular `genome.fasta.*`; `sv_tools` 12/12 and `gridss/gridss` module tests 4/4 passed.)
+- [x] Coder: patch the guarded `cp -s` line in `gridss/gridss` `main.nf` following the contract, run `nf-core modules patch gridss/gridss`, and review the `modules.json` diff. (2026-10-29, nodo01: variant A with relative links, user-confirmed. nf-core/tools 4.2.1 wrote `gridss-gridss.diff` and the `patch` key; a first 4.1.0 attempt failed on a dirty local nf-core cache, reset by the user. `check_up_to_date` (patch and lint) re-added a `bcftools/stats` entry, removed by user decision; the final `modules.json` diff is only the `gridss/gridss` entry plus `patch`. `nf-core modules lint gridss/gridss` (4.2.1): 58 passed, 1 warning `module_version: New version available`, 0 failed.)
+- [x] Coder: bring the three Step 6 tests to GREEN, then pass the final verification set with the listed snapshots unchanged. (2026-10-29, nodo01: final set `--ci` `SUCCESS: Executed 20 tests`; AC8 scan empty; `modules.json` valid JSON; the four snapshots unchanged. Real derived run: no `Running bwa index`; `genome.fasta.{amb,ann,bwt,pac,sa}` link to `BWA_INDEX` `bwa/genome.*`.)
+- [x] Cleaner: refactor after GREEN and rerun the final verification set. (2026-10-29, nodo01: no change.)
+- [x] Coder, after verification: update `docs/usage.md` (the GRIDSS bullet in the SV paragraph) and `CHANGELOG.md` (the `v1.0dev` GRIDSS entry). Both should say that GRIDSS uses the `--index` index whatever its prefix, and the index derived from `--fasta`, without rebuilding it per task. Replace the "only when named after the FASTA file name" wording. (2026-10-29, nodo01: both updated; one `README.md` sentence with the same now-false claim was corrected too.)
+
 ## Risks and spec notes (not resolved by changing the spec)
 
 - **Warning wording:** the single warning text in the contract contains both "No SV tools have been selected ... no SV results will be returned" (Model section) and "at least one SV tool is required" (AC5).
 - **Output relocation:** the existing `manta/`, `delly/`, `svs/annotsv_annotation/`, and `svs/delly_annotsv_annotation/` move to `SVs/{method}/`. Note the capital `SVs`, as the spec requires. Users of the old paths are affected, so the CHANGELOG must say so.
-- **GRIDSS index naming:** `BWA_INDEX` writes `bwa/<fasta.baseName>.*`. GRIDSS looks for an index next to the reference (`<fasta name>.*`) and rebuilds it itself when that is missing. The spec contract (the index is passed to GRIDSS) is met, but a derived index may not actually be used. A scoped `BWA_INDEX` `ext.prefix` set to the FASTA file name stays compatible with `BWA_MEM`, which finds the index by `*.amb`. This is optional and outside the stub-testable contract. Record whatever is chosen.
+- **GRIDSS index naming:** `BWA_INDEX` writes `bwa/<fasta.baseName>.*`. GRIDSS 2.13.2 checks for `${reference}.bwt` (`<fasta.name>.bwt`) and otherwise runs `bwa index` itself. A real run on 2026-10-29 (`derived_bwa_index.nf.test`) confirmed that the derived index was ignored, so AC6 was not met. A user `--index` with any other prefix is ignored in the same way. Step 6 resolves this with the user-decided local patch of `gridss/gridss` (variant A). `GRIDSS_ANNOTSV`, `BWA_INDEX` (no `ext.prefix`), `BWA_MEM` (finds the index by `*.amb`) and `workflows/snvs.nf` stay unchanged. `subworkflows/nf-core/fastq_align_bwa` is unused. Remaining risks:
+  - `nf-core modules patch` runs `check_up_to_date`, which could touch other `modules.json` entries. The coder reviews the `modules.json` diff: an added `bcftools/stats` entry or other change is removed and reported to the user by the builder; an nf-core offer to move or remove modules, or a need to register `bcftools/stats`, means stop and report.
+  - Observed in Step 6: while the untracked `modules/nf-core/bcftools/stats/` exists, future nf-core commands (for example `modules patch` or `modules lint`) will re-add `bcftools/stats` to `modules.json`. Review the `modules.json` diff after any nf-core command.
+  - Any future `nf-core modules update gridss/gridss` must reapply `gridss-gridss.diff`, as for the AnnotSV and Manta patches.
+  - `--refdict` (`params.refdict`) is not passed to GRIDSS. Wiring it would change the `GRIDSS_GRIDSS` inputs, so it is out of scope.
 - **Version dumper:** the pipeline-level dump aggregates by module name and fails if two same-named modules report different versions. All AnnotSV and Tabix uses share one container, so this holds today. Do not feed the GRIDSS `versions_mqc` to MultiQC.
-- **Pre-existing, out of scope:** `ch_manta_config` is `Channel.empty()` when `--manta_config` is unset, which silently skips Manta; the default is a URL. `gridss/gridss` is tracked but missing from `modules.json`. `annotsv/installannotations` has no `versions.yml` in its stub. Report these; do not fix them here.
+- **Pre-existing, out of scope:** `ch_manta_config` is `Channel.empty()` when `--manta_config` is unset, which silently skips Manta; the default is a URL. `annotsv/installannotations` has no `versions.yml` in its stub. Report these; do not fix them here. Exception, user decision 2026-10-29: the missing `modules.json` entry for `gridss/gridss` (tracked) is fixed in Step 6. `bcftools/stats` (untracked, unused) stays unregistered, untracked and untouched; this overrides the earlier decision to register it.
 - `--sv_tools` passed without a value, or as `--sv_tools ''` on the command line, becomes boolean `true` in Nextflow. The string schema rejects it with `Value is [boolean] but should be [string]` plus the `errorMessage` (observed at planning). This is why the docs must give working empty forms. No test is required.
 - `--validate_params false` skips schema validation, so unknown names are then not rejected. They match no method and run nothing. This is accepted user opt-out, not a defect.
 
 ## Blockers
 
-- None. The Step 1 stub-only patch of `annotsv/annotsv` and `manta/germline` (add `versions.yml` to the stubs, regenerate the patches with `nf-core modules patch`, real scripts unchanged) was approved by the user on 2026-10-28, relayed by the coordinator. It is no longer a blocker.
+- None for Steps 1-5. The Step 1 stub-only patch of `annotsv/annotsv` and `manta/germline` (add `versions.yml` to the stubs, regenerate the patches with `nf-core modules patch`, real scripts unchanged) was approved by the user on 2026-10-28, relayed by the coordinator. It is no longer a blocker.
 - Not a blocker: the GRIDSS subworkflow test depends on the untracked local `agents_data/reference-data`, which exists on this cluster.
+- None for Step 6. The user decided the former open points on 2026-10-29; no open point remains. Not a blocker: the real `derived_bwa_index.nf.test` depends on `agents_data/reference-data` and on network access to nf-core test-datasets.
