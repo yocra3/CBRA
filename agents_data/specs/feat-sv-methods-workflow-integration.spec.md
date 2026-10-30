@@ -1,7 +1,7 @@
 # SV methods workflow integration and selection Specification
 - **ID**: feat-sv-methods-workflow-integration
 - **Type**: feat
-- **Status**: Coded
+- **Status**: Verified
 
 Allowed status flow: Draft -> Approved -> Planned -> Coded -> Verified -> Released. A requested
 revision of the same work reopens this file at Draft.
